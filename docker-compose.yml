@@ -1,0 +1,72 @@
+networks:
+  wordpress-network:
+    # external: true
+    name: wordpress-network
+
+services:
+  db:
+    image: docker.io/mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password    
+    container_name: db
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB_NAME}
+      DB_TZ: ${MYSQL_TZ}
+    volumes:
+      - ./data/dbdata:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    networks:
+      - wordpress-network
+
+  wordpress:
+    depends_on:
+      - db
+    image: docker.io/wordpress:php8.3-fpm-alpine
+    container_name: wordpress
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=db:${MYSQL_PORT}
+      - WORDPRESS_DB_USER=${MYSQL_USER}
+      - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
+      - WORDPRESS_DB_NAME=${MYSQL_DB_NAME}
+      - PHP_POST_MAX_SIZE=150M
+      - PHP_UPLOAD_MAX_FILESIZE=150M
+      - PHP_MAX_EXECUTION_TIME=600
+    volumes:
+      - ./data/wordpress:/var/www/html
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./uploads.ini:/usr/local/etc/php8.3/conf.d/uploads.ini
+    networks:
+      - wordpress-network
+      
+  webserver:
+    depends_on:
+      - wordpress
+    image: docker.io/nginx:1.15.12-alpine
+    container_name: webserver
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - ${APP_PORT}:80
+    volumes:
+      - ./data/wordpress:/var/www/html
+      - ./nginx-conf:/etc/nginx/conf.d
+      - ./data/certbot-etc:/etc/letsencrypt
+    networks:
+      - wordpress-network
+
+# certbot:
+  #   depends_on:
+  #     - webserver
+  #   image: certbot/certbot
+  #   container_name: certbot
+  #   env_file: .env
+  #   volumes:
+  #     - ./data/certbot-etc:/etc/letsencrypt
+  #     - ./data/wordpress:/var/www/html
+  #   command: certonly --webroot --webroot-path=/var/www/html --email <email@address.com> --agree-tos --no-eff-email --staging -d example.com -d www.example.com
+  #   networks:
+  #     - wordpress-network00

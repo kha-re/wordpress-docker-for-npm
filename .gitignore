@@ -1,0 +1,8 @@
+.env
+data/certbot-etc/*
+!data/certbot-etc/.gitkeep
+data/dbdata/*
+!data/dbdata/.gitkeep
+data/wordpress/*
+!data/wordpress/.gitkeep
+!data/.gitkeep
