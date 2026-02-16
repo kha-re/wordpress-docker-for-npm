@@ -1,6 +1,8 @@
 .env
 data/dbdata/*
 !data/dbdata/.gitkeep
+data/redis/*
+!data/redis/.gitkeep
 data/wordpress/*
 !data/wordpress/.gitkeep
 !data/.gitkeep
