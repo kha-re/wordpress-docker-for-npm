@@ -1,6 +1,5 @@
 networks:
   wordpress-network:
-    # external: true
     name: wordpress-network
 
 services:
@@ -45,7 +44,7 @@ services:
   webserver:
     depends_on:
       - wordpress
-    image: docker.io/nginx:1.15.12-alpine
+    image: docker.io/nginx:1.27-alpine
     container_name: webserver
     restart: unless-stopped
     env_file: .env
@@ -54,19 +53,5 @@ services:
     volumes:
       - ./data/wordpress:/var/www/html
       - ./nginx-conf:/etc/nginx/conf.d
-      - ./data/certbot-etc:/etc/letsencrypt
     networks:
       - wordpress-network
-
-# certbot:
-  #   depends_on:
-  #     - webserver
-  #   image: certbot/certbot
-  #   container_name: certbot
-  #   env_file: .env
-  #   volumes:
-  #     - ./data/certbot-etc:/etc/letsencrypt
-  #     - ./data/wordpress:/var/www/html
-  #   command: certonly --webroot --webroot-path=/var/www/html --email <email@address.com> --agree-tos --no-eff-email --staging -d example.com -d www.example.com
-  #   networks:
-  #     - wordpress-network00
